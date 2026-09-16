@@ -8,7 +8,7 @@ import { CartLauncher } from "./cart-launcher";
 const links = [{ href: "/#featured", label: "المميزة" }, { href: "/#categories", label: "الأقسام" }, { href: "/#shop", label: "كل الخدمات" }];
 
 export function BrandMark() {
-  return <Link href="/" className="flex items-center gap-3" aria-label="Raeed Dev"><span className="relative h-11 w-11 overflow-hidden rounded-2xl bg-[#08090d]"><Image src="/fornav.png" alt="Raeed Dev" fill sizes="44px" className="object-cover" priority /></span><span className="leading-none"><b className="block text-[13px] font-black tracking-[.06em]">Raeed Dev</b><b className="mt-1 block text-[9px] font-bold tracking-[.16em] text-[#103cff]">DIGITAL STORE</b></span></Link>;
+  return <Link href="/" className="flex items-center gap-3" aria-label="Raeed Dev"><span className="relative h-11 w-11 overflow-hidden "><Image src="/fornav.png" alt="Raeed Dev" fill sizes="44px" className="object-cover" priority /></span><span className="leading-none"><b className="block text-[13px] font-black tracking-[.06em]">Raeed Dev</b><b className="mt-1 block text-[9px] font-bold tracking-[.16em] text-[#103cff]">DIGITAL STORE</b></span></Link>;
 }
 
 export function SiteHeader() {
