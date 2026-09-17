@@ -3,6 +3,7 @@
 import { useState, type FormEvent } from "react";
 import type { Product } from "../_lib/catalog";
 import { buildProjectInquiry, requestFields } from "../_lib/services";
+import { catalogPath } from "../_lib/catalog-urls";
 import { Icon } from "./icon";
 import styles from "../storefront.module.css";
 
@@ -14,7 +15,7 @@ export function ProjectInquiry({ product }: { product: Product }) {
     event.preventDefault();
     setError("");
     try {
-      const text = buildProjectInquiry(product, new FormData(event.currentTarget), `${window.location.origin}/products/${product.slug}`);
+      const text = buildProjectInquiry(product, new FormData(event.currentTarget), `${window.location.origin}${catalogPath("product", product)}`);
       window.location.assign(`https://wa.me/963969477454?text=${encodeURIComponent(text)}`);
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : "تعذّر تجهيز الرسالة. حاول مجدداً.");

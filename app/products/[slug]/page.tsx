@@ -1,6 +1,8 @@
 import Image from "next/image";
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
+import { catalogPath, findByUrl } from "../../_lib/catalog-urls";
+import { resolveCatalogAlias } from "../../_lib/catalog-url-storage";
 import { getStorefront, getExchangeRate } from "../../_lib/store";
 import { SiteHeader } from "../../_components/site-header";
 import { SiteFooter } from "../../_components/site-footer";
@@ -16,16 +18,23 @@ export const dynamic = "force-dynamic";
 export default async function ProductPage({ params }: PageProps<"/products/[slug]">) {
   const { slug } = await params;
   const { products, categories } = await getStorefront();
-  const product = products.find((item) => item.slug === slug);
+  let product = findByUrl(products, slug);
+  if (!product) {
+    const original = await resolveCatalogAlias("product", slug);
+    product = products.find(item => item.slug === original);
+  }
   if (!product) notFound();
+  // Use a non-cached redirect: an owner may later switch back to a previous URL.
+  if (slug !== (product.urlSlug || product.slug)) redirect(catalogPath("product", product));
   const rate = product.service?.pricing === "quote" ? null : await getExchangeRate();
   const formatSyp = (price: number) => new Intl.NumberFormat("ar-SY").format(price * (rate ?? 0));
-  const category = categories.find(item => item.slug === product.categorySlug);
-  const related = products.filter((item) => item.slug !== slug && Boolean(item.service) === Boolean(product.service)).sort((a, b) => Number(b.categorySlug === product.categorySlug) - Number(a.categorySlug === product.categorySlug)).slice(0, 4);
+  const currentProduct = product;
+  const category = categories.find(item => item.slug === currentProduct.categorySlug);
+  const related = products.filter((item) => item.slug !== currentProduct.slug && Boolean(item.service) === Boolean(currentProduct.service)).sort((a, b) => Number(b.categorySlug === currentProduct.categorySlug) - Number(a.categorySlug === currentProduct.categorySlug)).slice(0, 4);
   const whatsapp = `https://wa.me/963969477454?text=${encodeURIComponent(`مرحباً، بدي أطلب ${product.name} بسعر $${product.price}`)}`;
   return <main className={styles.storefront}><SiteHeader />
     <div className={styles.container}>
-      <nav className={styles.breadcrumbs} aria-label="مسار الصفحة"><Link href="/">الرئيسية</Link><span>/</span>{category && <><Link href={`/categories/${category.slug}`}>{category.name}</Link><span>/</span></>}<span dir="auto">{product.name}</span></nav>
+      <nav className={styles.breadcrumbs} aria-label="مسار الصفحة"><Link href="/">الرئيسية</Link><span>/</span>{category && <><Link href={catalogPath("category", category)}>{category.name}</Link><span>/</span></>}<span dir="auto">{product.name}</span></nav>
       <section className={styles.detailGrid}>
         <div className={`${styles.detailVisual} bg-gradient-to-br ${product.color}`}><div className={styles.productOrbits} aria-hidden="true" />{product.imageUrl ? <Image unoptimized src={product.imageUrl} alt={product.name} fill sizes="(max-width: 760px) 100vw, 50vw" className={styles.productImage} /> : <span aria-hidden="true">{product.glyph}</span>}<span className={styles.deliveryBadge}><Icon name={product.service ? "plus" : "bolt"} />{product.service ? "خدمة برمجية" : product.delivery}</span></div>
         {product.service ? <ServiceOverview product={product} categoryName={category?.name} exchangeRate={rate} /> : <div className={styles.detailInfo}><p className={styles.eyebrow}>{category?.name} <span /> YOUR NEXT UPGRADE</p><h1 dir="auto">{product.name}</h1><p className={styles.detailDescription}>{product.note}</p>

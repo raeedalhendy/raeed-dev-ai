@@ -1,6 +1,7 @@
 CREATE TABLE IF NOT EXISTS categories (
   id BIGSERIAL PRIMARY KEY,
   slug TEXT UNIQUE NOT NULL,
+  url_slug TEXT,
   name TEXT NOT NULL,
   description TEXT NOT NULL,
   parent_slug TEXT REFERENCES categories(slug) ON DELETE SET NULL,
@@ -13,6 +14,7 @@ CREATE TABLE IF NOT EXISTS categories (
 CREATE TABLE IF NOT EXISTS products (
   id BIGSERIAL PRIMARY KEY,
   slug TEXT UNIQUE NOT NULL,
+  url_slug TEXT,
   name TEXT NOT NULL,
   category_slug TEXT NOT NULL REFERENCES categories(slug),
   price_usd NUMERIC(10,2) NOT NULL CHECK (price_usd >= 0),
@@ -27,6 +29,13 @@ CREATE TABLE IF NOT EXISTS products (
   active BOOLEAN NOT NULL DEFAULT true,
   created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS catalog_urls (
+  kind TEXT NOT NULL CHECK(kind IN ('product','category')),
+  slug TEXT NOT NULL,
+  entity_slug TEXT NOT NULL,
+  PRIMARY KEY(kind,slug)
 );
 
 CREATE TABLE IF NOT EXISTS store_settings (
@@ -61,3 +70,8 @@ ON CONFLICT (slug) DO NOTHING;
 
 INSERT INTO store_settings (key, value) VALUES ('exchange_rate', '1350')
 ON CONFLICT (key) DO NOTHING;
+
+INSERT INTO catalog_urls(kind,slug,entity_slug)
+  SELECT 'product',slug,slug FROM products
+  UNION ALL SELECT 'category',slug,slug FROM categories
+  ON CONFLICT(kind,slug) DO NOTHING;

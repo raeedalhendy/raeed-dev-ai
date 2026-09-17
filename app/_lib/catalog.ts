@@ -1,4 +1,5 @@
 export type Category = {
+  urlSlug?: string;
   slug: string;
   name: string;
   description: string;
@@ -9,6 +10,7 @@ export type Category = {
 };
 
 export type Product = {
+  urlSlug?: string;
   service?: ServiceDetails;
   imageUrl?: string;
   slug: string;

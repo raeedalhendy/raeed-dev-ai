@@ -2,12 +2,13 @@ import Link from "next/link";
 import Image from "next/image";
 import type { Product } from "../_lib/catalog";
 import { priceLabel } from "../_lib/services";
+import { catalogPath } from "../_lib/catalog-urls";
 import { Icon } from "./icon";
 import styles from "../storefront.module.css";
 
 export function ProductCard({ product }: { product: Product }) {
   return (
-    <Link href={`/products/${product.slug}`} className={styles.productCard} title={product.name}>
+    <Link href={catalogPath("product", product)} className={styles.productCard} title={product.name}>
       <div className={`${styles.productVisual} bg-gradient-to-br ${product.color}`}>
         <div className={styles.productOrbits} aria-hidden="true" />
         {product.imageUrl ? (

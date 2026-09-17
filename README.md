@@ -8,6 +8,23 @@ rate are loaded from the database in both development and production.
 There is no sample-catalog fallback. Manage catalog content and the exchange
 rate through the dashboard.
 
+## Product and category URLs
+
+The dashboard generates a readable public URL from the name (Arabic or English).
+Use **توليد من الاسم** to regenerate it or edit **رابط الصفحة** manually. Automatic
+duplicates receive `-2`, `-3`, etc.; custom duplicates show a validation error.
+Changing the display name alone does not rename an existing page.
+
+URL edits preserve immutable internal slugs, category relationships and cart IDs.
+All former URLs remain reserved and redirect directly to the latest public URL.
+Redirects are temporary to avoid cached redirect loops when returning to an old URL.
+Deleted items return 404; their old links cannot be reassigned to another item.
+
+The first authenticated catalog save runs the additive migration automatically.
+If the database role cannot alter tables, run
+`database/migration-005-catalog-urls.sql` in Neon's SQL editor. No new Vercel
+environment variables are needed. Existing catalog reads work before migration.
+
 ## Programming services
 
 In **Dashboard → Products → Add product**, choose **خدمة برمجية** as the product
