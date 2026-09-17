@@ -4,6 +4,7 @@ import { isAdmin } from "../_lib/auth";
 import { sql } from "../_lib/db";
 import { saveUploadedImage } from "../_lib/uploads";
 import { ImageValidationError } from "../_lib/image-processing";
+import { parseProductDetails, ProductValidationError } from "../_lib/services";
 
 export async function mutate(kind: "category" | "product" | "rate", operation: "create" | "edit" | "delete", form: FormData) {
   if (!await isAdmin()) return { ok: false, message: "انتهت الجلسة. سجّل الدخول مجدداً." };
@@ -42,26 +43,34 @@ export async function mutate(kind: "category" | "product" | "rate", operation: "
       } else if (operation === "delete") {
         await db`UPDATE products SET active=false WHERE slug=${slug}`;
       } else {
-        const price = Number(v("price"));
-        if (!v("price") || !Number.isFinite(price) || price < 0 || price > 99999999) return { ok: false, message: "أدخل سعراً صالحاً." };
+        const details = parseProductDetails(form);
         const category = await db`SELECT slug FROM categories WHERE slug=${v("category_slug")} AND active`;
         if (!category.length) return { ok: false, message: "اختر قسماً موجوداً." };
         const featured = form.get("featured") === "on";
+        const columns = await db`SELECT column_name FROM information_schema.columns WHERE table_schema=current_schema() AND table_name='products' AND column_name IN ('image_url','service_details')`;
+        if (!columns.some(column => column.column_name === "service_details")) {
+          try {
+            await db`ALTER TABLE products ADD COLUMN IF NOT EXISTS service_details JSONB`;
+          } catch {
+            return { ok: false, message: "تعذّر تجهيز حقول الخدمات. شغّل ملف database/migration-004-project-services.sql في SQL Editor بقاعدة Neon المرتبطة بالموقع، ثم حاول الحفظ مجدداً." };
+          }
+        }
+        if (!columns.some(column => column.column_name === "image_url")) await db`ALTER TABLE products ADD COLUMN IF NOT EXISTS image_url TEXT`;
         const upload = await saveUploadedImage(form);
-        await db`ALTER TABLE products ADD COLUMN IF NOT EXISTS image_url TEXT`;
         const existing = operation === "edit" ? await db`SELECT image_url FROM products WHERE slug=${slug}` : [];
         const image = upload?.url ?? (v("remove_image") === "yes" ? null : existing[0]?.image_url ?? null);
+        const service = details.service ? JSON.stringify(details.service) : null;
         if (operation === "create") {
-          await db`INSERT INTO products(slug,name,category_slug,price_usd,note,glyph,color,duration,delivery,account_type,featured,image_url) VALUES(${slug},${v("name")},${v("category_slug")},${price},${v("note")},'✦','from-[#103cff] to-[#6e82ff]',${v("duration")},${v("delivery")},${v("account_type")},${featured},${image})`;
+          await db`INSERT INTO products(slug,name,category_slug,price_usd,note,glyph,color,duration,delivery,account_type,featured,image_url,service_details) VALUES(${slug},${v("name")},${v("category_slug")},${details.price},${details.note},'✦','from-[#103cff] to-[#6e82ff]',${details.duration},${details.delivery},${details.accountType},${featured},${image},${service}::jsonb)`;
         } else {
-          await db`UPDATE products SET name=${v("name")},category_slug=${v("category_slug")},price_usd=${price},note=${v("note")},duration=${v("duration")},delivery=${v("delivery")},account_type=${v("account_type")},featured=${featured},image_url=${image},updated_at=now() WHERE slug=${slug} AND active`;
+          await db`UPDATE products SET name=${v("name")},category_slug=${v("category_slug")},price_usd=${details.price},note=${details.note},duration=${details.duration},delivery=${details.delivery},account_type=${details.accountType},featured=${featured},image_url=${image},service_details=${service}::jsonb,updated_at=now() WHERE slug=${slug} AND active`;
         }
       }
     }
     revalidatePath("/", "layout");
     return { ok: true, message: operation === "delete" ? "تم الحذف بنجاح." : "تم حفظ التغييرات بنجاح." };
   } catch (error) {
-    if (error instanceof ImageValidationError) return {ok:false,message:error.message};
+    if (error instanceof ImageValidationError || error instanceof ProductValidationError) return {ok:false,message:error.message};
     const code = (error as { code?: string }).code;
     return { ok: false, message: code === "23505" ? "الرابط المختصر مستخدم بالفعل. اختر رابطاً آخر." : "تعذّر الحفظ. تحقق من الاتصال وحاول مجدداً." };
   }

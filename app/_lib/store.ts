@@ -1,6 +1,6 @@
 import "server-only";
 import { sql } from "./db";
-import type { Category, Product } from "./catalog";
+import type { Category, Product, ServiceDetails } from "./catalog";
 
 type DbCategory = {
   slug: string;
@@ -13,6 +13,7 @@ type DbCategory = {
 };
 
 type DbProduct = {
+  service_details?: ServiceDetails | null;
   image_url?: string | null;
   slug: string;
   name: string;
@@ -38,6 +39,7 @@ const category = (row: DbCategory): Category => ({
 });
 
 const product = (row: DbProduct): Product => ({
+  service: row.service_details ?? undefined,
   slug: row.slug,
   name: row.name,
   categorySlug: row.category_slug,
@@ -65,7 +67,7 @@ export async function getStorefront() {
   const db = sql();
   const [categories, products] = await Promise.all([
     db`SELECT slug,name,description,parent_slug,glyph,color,to_jsonb(categories)->>'image_url' AS image_url FROM categories WHERE active=true ORDER BY name`,
-    db`SELECT slug,name,category_slug,price_usd,note,glyph,color,duration,delivery,account_type,featured,to_jsonb(products)->>'image_url' AS image_url FROM products WHERE active=true ORDER BY featured DESC,created_at DESC`,
+    db`SELECT slug,name,category_slug,price_usd,note,glyph,color,duration,delivery,account_type,featured,to_jsonb(products)->>'image_url' AS image_url,to_jsonb(products)->'service_details' AS service_details FROM products WHERE active=true ORDER BY featured DESC,created_at DESC`,
   ]);
   return {
     categories: (categories as DbCategory[]).map(category),

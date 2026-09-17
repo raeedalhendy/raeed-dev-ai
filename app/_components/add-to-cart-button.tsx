@@ -9,6 +9,7 @@ import styles from "../storefront.module.css";
 export function AddToCartButton({ product }: { product: Product }) {
   const [added, setAdded] = useState(false);
   const [error, setError] = useState(false);
+  if (product.service) return null;
   function addToCart() {
     const cart = parseCart(cartSnapshot());
     const updated = cart.some((item) => item.slug === product.slug) ? cart.map((item) => item.slug === product.slug ? product : item) : [...cart, product];

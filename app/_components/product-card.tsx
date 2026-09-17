@@ -1,6 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import type { Product } from "../_lib/catalog";
+import { priceLabel } from "../_lib/services";
 import { Icon } from "./icon";
 import styles from "../storefront.module.css";
 
@@ -22,13 +23,13 @@ export function ProductCard({ product }: { product: Product }) {
           <span className={styles.productGlyph} aria-hidden="true">{product.glyph}</span>
         )}
       </div>
-      <span className={styles.deliveryBadge}><Icon name="bolt" />{product.delivery}</span>
+      <span className={styles.deliveryBadge}><Icon name={product.service ? "plus" : "bolt"} />{product.service ? "خدمة برمجية" : product.delivery}</span>
       <div className={styles.productInfo}>
         <h3 dir="auto">{product.name}</h3>
         <p>{product.accountType}</p>
-        <div className={styles.productMeta}>
-          <span>{product.duration}</span>
-          <strong className={styles.price} dir="ltr"><small>$</small>{product.price}</strong>
+        <div className={`${styles.productMeta} ${product.service ? styles.serviceCardMeta : ""}`}>
+          <span>{product.service ? "اطلب عرض سعر ←" : product.duration}</span>
+          {product.service ? <strong className={styles.serviceCardPrice} dir="auto">{priceLabel(product)}</strong> : <strong className={styles.price} dir="ltr"><small>$</small>{product.price}</strong>}
         </div>
       </div>
     </Link>

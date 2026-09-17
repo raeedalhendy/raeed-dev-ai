@@ -9,6 +9,7 @@ export type Category = {
 };
 
 export type Product = {
+  service?: ServiceDetails;
   imageUrl?: string;
   slug: string;
   name: string;
@@ -21,4 +22,13 @@ export type Product = {
   delivery: string;
   accountType: string;
   featured?: boolean;
+};
+
+export type ServiceDetails = {
+  type: "website" | "application" | "store";
+  pricing: "fixed" | "starting" | "quote";
+  includes: string[];
+  excludes: string[];
+  support: string;
+  portfolioUrl: string;
 };

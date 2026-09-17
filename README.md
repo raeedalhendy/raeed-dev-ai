@@ -8,6 +8,37 @@ rate are loaded from the database in both development and production.
 There is no sample-catalog fallback. Manage catalog content and the exchange
 rate through the dashboard.
 
+## Programming services
+
+In **Dashboard → Products → Add product**, choose **خدمة برمجية** as the product
+type, then choose websites, applications, or subscription/game stores. Select
+fixed pricing, a starting price, or a custom quote. Add the estimated delivery
+time, scope/deliverables, exclusions, support terms and an optional portfolio
+link. Existing products remain digital subscriptions until explicitly changed.
+
+Service pages collect a short project brief and open a pre-filled WhatsApp
+message for the customer to review and send. They do not create database orders,
+send messages automatically, charge customers, or enter the subscription cart.
+Only publish features and support terms you actually provide; no example services
+or prices are automatically published.
+
+### Neon and Vercel rollout
+
+- No additional Vercel environment variables, integrations or packages are needed.
+  Keep the existing `DATABASE_URL` and authentication configuration.
+- The authenticated dashboard automatically adds the nullable
+  `products.service_details JSONB` column on the first product save, using the
+  same database role already used for image-column upgrades. This role must be
+  allowed to alter the products table.
+- You can alternatively run `database/migration-004-project-services.sql` once
+  in Neon's SQL editor against the database/branch used by the deployed app.
+  It is additive and safe to run again; existing products are not modified.
+- Catalog reads work before the migration as well, treating products without
+  service details as subscriptions. Pushes need a successful deployment on
+  Vercel before the new dashboard fields appear.
+
+Run `npm test`, `npm run lint`, and `npm run build` to validate the application.
+
 First, run the development server:
 
 ```bash

@@ -22,6 +22,7 @@ CREATE TABLE IF NOT EXISTS products (
   duration TEXT NOT NULL,
   delivery TEXT NOT NULL,
   account_type TEXT NOT NULL,
+  service_details JSONB,
   featured BOOLEAN NOT NULL DEFAULT false,
   active BOOLEAN NOT NULL DEFAULT true,
   created_at TIMESTAMPTZ NOT NULL DEFAULT now(),

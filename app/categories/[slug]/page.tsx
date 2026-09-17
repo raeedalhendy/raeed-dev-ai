@@ -19,7 +19,7 @@ export default async function CategoryPage({ params }: PageProps<"/categories/[s
     <section className={styles.categoryIntro}><span className={styles.categoryIntroGlyph} aria-hidden="true">{category.glyph}</span><p className={styles.eyebrow}>FIND YOUR SPACE <span /> عالمك المفضل</p><h1>{category.name}</h1><p className={styles.sectionDescription}>{category.description}</p></section>
     <section className={styles.categoryProducts} aria-label={`تصفّح ${category.name}`}>
       {children.length > 0 && <div className={styles.categoryGrid}>{children.map((item) => <CategoryCard key={item.slug} category={item} />)}</div>}
-      {items.length > 0 && <><p className={styles.resultsCount}>{items.length} اشتراكات متاحة</p><div className={styles.productGrid}>{items.map((item) => <ProductCard key={item.slug} product={item} />)}</div></>}
-      {children.length === 0 && items.length === 0 && <div className={styles.emptyState}><h2>قريباً، إمكانيات جديدة.</h2><p>لا توجد اشتراكات في هذا القسم حالياً.</p><Link href="/#shop" className={styles.outlineButton}>تصفّح كل الاشتراكات</Link></div>}
+      {items.length > 0 && <><p className={styles.resultsCount}>{items.length} منتجات وخدمات متاحة</p><div className={styles.productGrid}>{items.map((item) => <ProductCard key={item.slug} product={item} />)}</div></>}
+      {children.length === 0 && items.length === 0 && <div className={styles.emptyState}><h2>قريباً، إمكانيات جديدة.</h2><p>لا توجد منتجات أو خدمات في هذا القسم حالياً.</p><Link href="/#shop" className={styles.outlineButton}>تصفّح المتجر</Link></div>}
     </section></div><SiteFooter /></main>;
 }

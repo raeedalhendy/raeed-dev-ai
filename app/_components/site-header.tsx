@@ -7,7 +7,7 @@ import { CartLauncher } from "./cart-launcher";
 import { Icon } from "./icon";
 import styles from "../storefront.module.css";
 
-const links = [{ href: "/#featured", label: "المميزة" }, { href: "/#categories", label: "الأقسام" }, { href: "/#shop", label: "كل الاشتراكات" }, { href: "/#how-it-works", label: "كيف تطلب؟" }];
+const links = [{ href: "/#featured", label: "المميزة" }, { href: "/#categories", label: "الأقسام" }, { href: "/#shop", label: "المتجر" }, { href: "/#how-it-works", label: "كيف تطلب؟" }];
 
 export function BrandMark() {
   return <Link href="/" className={styles.brand} aria-label="Raeed Dev — الرئيسية"><span className={styles.brandImage}><Image src="/fornav.png" alt="" fill sizes="44px" className="object-contain" priority /></span><span dir="ltr"><b>raeed dev<span>.</span></b><small>YOUR DIGITAL UPGRADE</small></span></Link>;
