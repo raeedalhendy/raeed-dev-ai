@@ -1,13 +1,60 @@
 "use server";
 import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
 import { isAdmin } from "../_lib/auth";
 import { sql } from "../_lib/db";
-const value=(f:FormData,k:string)=>String(f.get(k)??"").trim();
-async function admin(){if(!await isAdmin())redirect("/login")}
-function done(message:string){revalidatePath("/");revalidatePath("/dashboard");redirect(`/dashboard?toast=${encodeURIComponent(message)}`)}
-export async function saveCategory(f:FormData){await admin();const slug=value(f,"slug"),name=value(f,"name");if(!slug||!name)done("أكمل بيانات القسم.");const db=sql();await db`ALTER TABLE categories ADD COLUMN IF NOT EXISTS image_url TEXT`;await db`INSERT INTO categories (slug,name,description,parent_slug,glyph,color,image_url,active) VALUES (${slug},${name},${value(f,"description")||name},${value(f,"parent_slug")||null},'✦','from-[#103cff] to-[#6e82ff]',${value(f,"image_url")||null},true) ON CONFLICT (slug) DO UPDATE SET name=EXCLUDED.name,description=EXCLUDED.description,parent_slug=EXCLUDED.parent_slug,image_url=EXCLUDED.image_url,active=true`;done("تم حفظ القسم بنجاح.")}
-export async function removeCategory(f:FormData){await admin();const db=sql(),slug=value(f,"slug");await db`UPDATE categories SET parent_slug=NULL WHERE parent_slug=${slug}`;await db`UPDATE categories SET active=false WHERE slug=${slug}`;done("تم حذف القسم من المتجر.")}
-export async function saveProduct(f:FormData){await admin();const slug=value(f,"slug"),name=value(f,"name"),category=value(f,"category_slug"),price=Number(value(f,"price"));if(!slug||!name||!category||!Number.isFinite(price))done("أكمل بيانات المنتج المطلوبة.");await sql()`INSERT INTO products (slug,name,category_slug,price_usd,note,glyph,color,duration,delivery,account_type,featured,active) VALUES (${slug},${name},${category},${price},${value(f,"note")||name},'✦','from-[#103cff] to-[#6e82ff]',${value(f,"duration")||'شهر كامل'},${value(f,"delivery")||'خلال 15 دقيقة'},${value(f,"account_type")||'تفعيل مضمون'},${f.get("featured")==='on'},true) ON CONFLICT (slug) DO UPDATE SET name=EXCLUDED.name,category_slug=EXCLUDED.category_slug,price_usd=EXCLUDED.price_usd,note=EXCLUDED.note,duration=EXCLUDED.duration,delivery=EXCLUDED.delivery,account_type=EXCLUDED.account_type,featured=EXCLUDED.featured,active=true,updated_at=now()`;done("تم حفظ المنتج بنجاح.")}
-export async function removeProduct(f:FormData){await admin();await sql()`UPDATE products SET active=false WHERE slug=${value(f,"slug")}`;done("تم حذف المنتج من المتجر.")}
-export async function updateRate(f:FormData){await admin();const rate=Number(value(f,"rate"));if(!Number.isFinite(rate)||rate<=0)done("أدخل سعر صرف صحيح.");await sql()`INSERT INTO store_settings(key,value) VALUES('exchange_rate',${String(rate)}) ON CONFLICT(key) DO UPDATE SET value=EXCLUDED.value,updated_at=now()`;done("تم تحديث سعر الصرف.")}
+
+export async function mutate(kind: "category" | "product" | "rate", operation: "create" | "edit" | "delete", form: FormData) {
+  if (!await isAdmin()) return { ok: false, message: "انتهت الجلسة. سجّل الدخول مجدداً." };
+  const v = (key: string) => String(form.get(key) ?? "").trim();
+  const db = sql();
+  try {
+    const slug = v("slug");
+    if (kind === "rate") {
+      const rate = Number(v("rate"));
+      if (!Number.isFinite(rate) || rate <= 0) return { ok: false, message: "أدخل سعر صرف أكبر من صفر." };
+      await db`INSERT INTO store_settings(key,value) VALUES('exchange_rate',${String(rate)}) ON CONFLICT(key) DO UPDATE SET value=EXCLUDED.value,updated_at=now()`;
+    } else {
+      if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug)) return { ok: false, message: "الرابط المختصر: أحرف إنكليزية صغيرة وأرقام وشرطات فقط." };
+      if (operation !== "delete" && (!v("name") || v("name").length > 150)) return { ok: false, message: "أدخل اسماً صالحاً (حتى 150 حرفاً)." };
+      if (kind === "category") {
+        if (operation === "delete") {
+          const used = await db`SELECT 1 FROM categories WHERE parent_slug=${slug} AND active UNION ALL SELECT 1 FROM products WHERE category_slug=${slug} AND active LIMIT 1`;
+          if (used.length) return { ok: false, message: "انقل المنتجات والأقسام الفرعية أولاً قبل حذف هذا القسم." };
+          await db`UPDATE categories SET active=false WHERE slug=${slug}`;
+        } else {
+          const parent = v("parent_slug") || null;
+          if (parent) {
+            const ancestors = await db`WITH RECURSIVE tree AS (SELECT slug,parent_slug FROM categories WHERE slug=${parent} AND active UNION SELECT c.slug,c.parent_slug FROM categories c JOIN tree t ON c.slug=t.parent_slug) SELECT slug FROM tree`;
+            if (!ancestors.length || ancestors.some(row => row.slug === slug)) return { ok: false, message: "القسم الأب غير صالح أو يسبب تداخلاً دائرياً." };
+          }
+          const image = v("image_url");
+          if (image && !/^https:\/\//.test(image)) return { ok: false, message: "استخدم رابط صورة يبدأ بـ https://." };
+          await db`ALTER TABLE categories ADD COLUMN IF NOT EXISTS image_url TEXT`;
+          if (operation === "create") {
+            await db`INSERT INTO categories(slug,name,description,parent_slug,glyph,color,image_url) VALUES(${slug},${v("name")},${v("description")},${parent},'✦','from-[#103cff] to-[#6e82ff]',${image || null})`;
+          } else {
+            await db`UPDATE categories SET name=${v("name")},description=${v("description")},parent_slug=${parent},image_url=${image || null} WHERE slug=${slug} AND active`;
+          }
+        }
+      } else if (operation === "delete") {
+        await db`UPDATE products SET active=false WHERE slug=${slug}`;
+      } else {
+        const price = Number(v("price"));
+        if (!v("price") || !Number.isFinite(price) || price < 0 || price > 99999999) return { ok: false, message: "أدخل سعراً صالحاً." };
+        const category = await db`SELECT slug FROM categories WHERE slug=${v("category_slug")} AND active`;
+        if (!category.length) return { ok: false, message: "اختر قسماً موجوداً." };
+        const featured = form.get("featured") === "on";
+        if (operation === "create") {
+          await db`INSERT INTO products(slug,name,category_slug,price_usd,note,glyph,color,duration,delivery,account_type,featured) VALUES(${slug},${v("name")},${v("category_slug")},${price},${v("note")},'✦','from-[#103cff] to-[#6e82ff]',${v("duration")},${v("delivery")},${v("account_type")},${featured})`;
+        } else {
+          await db`UPDATE products SET name=${v("name")},category_slug=${v("category_slug")},price_usd=${price},note=${v("note")},duration=${v("duration")},delivery=${v("delivery")},account_type=${v("account_type")},featured=${featured},updated_at=now() WHERE slug=${slug} AND active`;
+        }
+      }
+    }
+    revalidatePath("/", "layout");
+    return { ok: true, message: operation === "delete" ? "تم الحذف بنجاح." : "تم حفظ التغييرات بنجاح." };
+  } catch (error) {
+    const code = (error as { code?: string }).code;
+    return { ok: false, message: code === "23505" ? "الرابط المختصر مستخدم بالفعل. اختر رابطاً آخر." : "تعذّر الحفظ. تحقق من الاتصال وحاول مجدداً." };
+  }
+}
