@@ -1,0 +1,3 @@
+"use client";
+import { useEffect,useState } from "react";
+export function Toast({message}:{message?:string}){const[show,setShow]=useState(Boolean(message));useEffect(()=>{if(!message)return;const id=setTimeout(()=>setShow(false),4000);return()=>clearTimeout(id)},[message]);return show?<div className="fixed left-5 top-5 z-50 flex items-center gap-3 rounded-2xl bg-[#101114] px-5 py-4 text-sm font-bold text-white shadow-2xl"><span className="grid h-6 w-6 place-items-center rounded-full bg-[#103cff]">✓</span>{message}<button onClick={()=>setShow(false)} className="mr-2 text-white/60">×</button></div>:null}
