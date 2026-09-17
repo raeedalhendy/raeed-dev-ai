@@ -1,14 +1,31 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import type { Product } from "../_lib/catalog";
+import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
+import Link from "next/link";
+import { cartSnapshot, emptyCartSnapshot, parseCart, saveCart, subscribeCart } from "../_lib/cart";
+import { Icon } from "./icon";
+import styles from "../storefront.module.css";
 
 export function CartLauncher() {
+  const dialog = useRef<HTMLDialogElement>(null);
   const [open, setOpen] = useState(false);
-  const [items, setItems] = useState<Product[]>([]);
-  const refresh = () => setItems(JSON.parse(localStorage.getItem("raeed-dev-cart") ?? "[]"));
-  useEffect(() => { window.addEventListener("raeed-dev-cart", refresh); return () => window.removeEventListener("raeed-dev-cart", refresh); }, []);
+  const [error, setError] = useState("");
+  const snapshot = useSyncExternalStore(subscribeCart, cartSnapshot, emptyCartSnapshot);
+  const items = useMemo(() => parseCart(snapshot), [snapshot]);
   const total = items.reduce((sum, item) => sum + item.price, 0);
-  const checkout = `https://wa.me/963969477454?text=${encodeURIComponent(`مرحباً، أريد طلب: ${items.map((item) => item.name).join("، ")} — الإجمالي $${total}`)}`;
-  return <><button onClick={() => { refresh(); setOpen(true); }} className="relative grid h-10 w-10 place-items-center rounded-xl border border-black/10 text-sm" aria-label="سلة الطلب">🛒{items.length > 0 && <span className="absolute -right-1 -top-1 grid h-4 w-4 place-items-center rounded-full bg-[#103cff] text-[9px] font-bold text-white">{items.length}</span>}</button>{open && <div className="fixed inset-0 z-50 bg-black/30 p-4" onClick={() => setOpen(false)}><div className="mr-auto h-full w-full max-w-sm rounded-3xl bg-white p-6 shadow-2xl" onClick={(event) => event.stopPropagation()}><div className="flex items-center justify-between"><h2 className="text-xl font-black">سلة الطلب</h2><button onClick={() => setOpen(false)} className="text-xl">×</button></div>{items.length ? <><div className="mt-6 space-y-3">{items.map((item) => <div key={item.slug} className="flex items-center justify-between rounded-2xl bg-black/[.04] p-4"><div><p className="font-bold">{item.name}</p><p className="mt-1 text-xs text-black/45">{item.duration}</p></div><p className="font-black text-[#103cff]">${item.price}</p></div>)}</div><div className="mt-6 flex justify-between border-t border-black/10 pt-5 font-black"><span>الإجمالي</span><span>${total}</span></div><a href={checkout} target="_blank" rel="noreferrer" className="mt-5 block rounded-2xl bg-[#103cff] py-4 text-center text-sm font-black text-white">تأكيد الطلب عبر واتساب</a></> : <p className="mt-8 rounded-2xl bg-black/[.04] p-5 text-sm text-black/50">السلة فارغة حالياً. أضف خدمة لنكمل طلبك.</p>}</div></div>}</>;
+  useEffect(() => {
+    if (!open) return;
+    const previous = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => { document.body.style.overflow = previous; };
+  }, [open]);
+  const checkout = `https://wa.me/963969477454?text=${encodeURIComponent(`مرحباً، أريد طلب: ${items.map((item) => item.name).join("، ")} — الإجمالي $${Number(total.toFixed(2))}`)}`;
+  function close() { dialog.current?.close(); }
+  return <><button onClick={() => { dialog.current?.showModal(); setOpen(true); }} className={styles.iconButton} aria-label={`سلة الطلب، ${items.length} اشتراكات`}><Icon name="bag" />{items.length > 0 && <span className={styles.cartCount}>{items.length}</span>}</button>
+    <dialog ref={dialog} className={styles.cartDialog} aria-labelledby="cart-title" onClose={() => setOpen(false)} onClick={(event) => { if (event.target === event.currentTarget) { const rect = event.currentTarget.getBoundingClientRect(); if (event.clientX < rect.left || event.clientX > rect.right || event.clientY < rect.top || event.clientY > rect.bottom) close(); } }}>
+      <div className={styles.cartHeading}><h2 id="cart-title">اختياراتك<span>.</span></h2><button onClick={close} className={styles.iconButton} aria-label="إغلاق السلة" autoFocus><Icon name="close" /></button></div>
+      {items.length ? <><div>{items.map((item) => <div key={item.slug} className={styles.cartItem}><div><b dir="auto">{item.name}</b><p>{item.duration}</p></div><div><strong dir="ltr">${item.price}</strong><button aria-label={`إزالة ${item.name} من السلة`} onClick={() => { if (!saveCart(items.filter((entry) => entry.slug !== item.slug))) setError("تعذّر تحديث السلة. تحقق من إعدادات التخزين في المتصفح."); }}><Icon name="close" /></button></div></div>)}</div><div className={styles.cartTotal}><span>الإجمالي</span><span dir="ltr">${Number(total.toFixed(2))}</span></div><a href={checkout} target="_blank" rel="noreferrer" className={styles.primaryButton}>أكمل طلبك عبر واتساب <Icon name="arrow" /></a><p className={styles.guestNote}>نؤكد معك تفاصيل الطلب وطريقة الدفع قبل التفعيل.</p></> : <div className={styles.cartEmpty}><Icon name="bag" /><h2>البداية من هنا.</h2><p>أضف اشتراكك المفضل، وخلّينا نجهّز طلبك.</p><Link href="/#shop" onClick={close} className={styles.primaryButton}>اكتشف الاشتراكات <Icon name="arrow" /></Link></div>}
+      {error && <p role="alert" className={styles.guestNote}>{error}</p>}
+    </dialog>
+  </>;
 }

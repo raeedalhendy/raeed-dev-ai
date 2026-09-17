@@ -1,7 +1,18 @@
 import Link from "next/link";
 import Image from "next/image";
 import type { Product } from "../_lib/catalog";
+import { Icon } from "./icon";
+import styles from "../storefront.module.css";
 
-export function ProductCard({ product }: { product: Product }) {
-  return <Link href={`/products/${product.slug}`} className="group block"><div className={`relative grid aspect-[1.06] place-items-center overflow-hidden rounded-3xl bg-gradient-to-br ${product.color} text-7xl font-black text-white shadow-sm transition duration-500 group-hover:-translate-y-2 group-hover:shadow-xl`}><span className="absolute z-10 right-3 top-3 rounded-full bg-white/15 px-3 py-1 text-[10px] font-bold backdrop-blur">{product.delivery}</span>{product.imageUrl ? <Image unoptimized src={product.imageUrl} alt={product.name} fill className="object-contain bg-white p-4" /> : product.glyph}</div><div className="mt-4 flex items-start justify-between gap-3"><div><h3 className="text-lg font-black">{product.name}</h3><p className="mt-1 text-xs text-black/45">{product.accountType} · {product.duration}</p></div><p className="whitespace-nowrap pt-1 text-sm font-black text-[#103cff]">${product.price}</p></div></Link>;
+export function ProductCard({ product, featured = false }: { product: Product; featured?: boolean }) {
+  return <Link href={`/products/${product.slug}`} className={`${styles.productCard} ${featured ? styles.featuredCard : ""}`}>
+    <div className={`${styles.productVisual} bg-gradient-to-br ${product.color}`}>
+      <div className={styles.productOrbits} aria-hidden="true" />
+      <span className={styles.deliveryBadge}><Icon name="bolt" />{product.delivery}</span>
+      {product.imageUrl ? <Image unoptimized src={product.imageUrl} alt={product.name} fill sizes={featured ? "(max-width: 700px) 100vw, 50vw" : "(max-width: 700px) 100vw, (max-width: 1000px) 50vw, 25vw"} className={styles.productImage} /> : <span className={styles.productGlyph} aria-hidden="true">{product.glyph}</span>}
+      <span className={styles.visualCaption}>UPGRADE YOUR EVERYDAY</span><span className={styles.cardArrow}><Icon name="arrow" /></span>
+    </div>
+    <div className={styles.productInfo}><div><span className={styles.productDuration}>{product.duration}</span><h3 dir="auto">{product.name}</h3><p>{product.accountType}</p></div><div className={styles.price}><strong dir="ltr"><small>$</small>{product.price}</strong><span>لكل اشتراك</span></div></div>
+    {featured && <div className={styles.featuredNote}><span>{product.note}</span><b>اكتشف الخدمة <Icon name="arrow" /></b></div>}
+  </Link>;
 }

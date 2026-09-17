@@ -1,9 +1,13 @@
+import Link from "next/link";
 import { CategoryCard } from "./_components/category-card";
 import { ProductCard } from "./_components/product-card";
 import { SiteHeader } from "./_components/site-header";
 import { ProductBrowser } from "./_components/product-browser";
 import { StoreExtras } from "./_components/store-extras";
+import { SiteFooter } from "./_components/site-footer";
+import { Icon } from "./_components/icon";
 import { getStorefront } from "./_lib/store";
+import styles from "./storefront.module.css";
 
 export const dynamic = "force-dynamic";
 
@@ -11,12 +15,36 @@ export default async function Home() {
   const { categories, products } = await getStorefront();
   const featured = products.filter((product) => product.featured);
   const rootCategories = categories.filter((category) => category.parentSlug === null);
-  return <main className="min-h-screen  bg-[#f8f9fc] text-[#101114]"><SiteHeader />
-    <section className="relative overflow-hidden "><div className="absolute left-1/2 top-[-25rem] -z-0 h-[42rem] w-[42rem] -translate-x-1/2 rounded-full bg-[#1745ff]/[.12] blur-3xl" /><div className="relative mx-auto max-w-7xl px-5 py-24 text-center md:px-8 md:py-36"><p className="text-xs font-bold tracking-[.18em] text-[#103cff]">RAEED DEV · DIGITAL STORE</p><h1 className="mx-auto mt-6 max-w-4xl text-5xl font-black leading-[1.06] tracking-[-.055em] md:text-7xl">اشتراكات رقمية<br /><span className="text-[#103cff]">تليق بشغلك.</span></h1><p className="mx-auto mt-6 max-w-md text-sm leading-7 text-black/50">خدمات أصلية، تفعيل سريع، ودعم يبقى معك بعد الطلب.</p><a href="#shop" className="mt-9 inline-flex items-center gap-3 rounded-full bg-[#103cff] px-6 py-3.5 text-sm font-bold text-white shadow-[0_15px_35px_rgba(16,60,255,.25)] transition hover:-translate-y-1">ابدأ التسوّق <span>↓</span></a></div></section>
+  return <main className={styles.storefront}>
+    <SiteHeader />
+    <section className={styles.hero}>
+      <div className={`${styles.container} ${styles.heroGrid}`}>
+        <div className={styles.heroCopy}>
+          <span className={styles.pill}><span className={styles.statusDot} /> عالمك الرقمي، بمستوى جديد</span>
+          <h1>أدوات أكبر.<br />إمكانيات <span>بلا حدود<svg viewBox="0 0 320 18" fill="none" aria-hidden="true"><path d="M4 13C78 2 223 1 316 9M45 16C126 9 233 8 288 13" stroke="currentColor" strokeWidth="3" strokeLinecap="round" /></svg></span></h1>
+          <p>من أول فكرة لآخر إنجاز. اشتراكاتك المفضلة في الذكاء الاصطناعي، التصميم والترفيه… كلها بمكان واحد.</p>
+          <div className={styles.heroActions}><a href="#shop" className={styles.primaryButton}>اكتشف الاشتراكات <Icon name="arrow" /></a><a href="#how-it-works" className={styles.textButton}><span className={styles.playButton}><Icon name="play" /></span> كيف تطلب؟</a></div>
+          <div className={styles.heroAssurance}><span><Icon name="shield" /> تفعيل مضمون</span><i /><span><Icon name="headphones" /> دعم معك خطوة بخطوة</span></div>
+        </div>
+        <div className={styles.heroArt} aria-hidden="true">
+          <div className={styles.orbitOuter} /><div className={styles.orbitInner} />
+          <span className={styles.artCoordinate}>YOUR DIGITAL UNIVERSE</span>
+          <div className={styles.core}><span className={styles.coreStar}>✳</span><strong>raeed<span>dev.</span></strong><small>UNLOCK YOUR POTENTIAL</small></div>
+          <div className={`${styles.floatingApp} ${styles.appAi}`}><span>✳</span><b>AI tools</b><small>فكّر أبعد</small></div>
+          <div className={`${styles.floatingApp} ${styles.appDesign}`}><span>◒</span><b>Design</b><small>اصنع المختلف</small></div>
+          <div className={`${styles.floatingApp} ${styles.appPlay}`}><Icon name="play" /><b>Entertainment</b><small>لحظتك الخاصة</small></div>
+          <div className={styles.activation}><span><Icon name="check" /></span><div><b>جاهز للانطلاقة؟</b><small>عالم من الإمكانيات بانتظارك</small></div><span className={styles.activationSpark}>✦</span></div>
+          <span className={styles.orbitDot} /><span className={styles.artPlus}>+</span>
+        </div>
+      </div>
+      <div className={`${styles.container} ${styles.heroBottom}`}><span>صُمّم ليواكب طموحك</span><div><span>CREATE</span><i /><span>WORK</span><i /><span>PLAY</span></div><a href="#featured" aria-label="اكتشف المنتجات المميزة"><Icon name="down" /></a></div>
+    </section>
+    <div className={styles.trustStrip}><div className={styles.container}>{[["bolt", "تفعيل سريع", "ابدأ بدون انتظار"], ["shield", "اشتراكات مضمونة", "راحة بال مع كل طلب"], ["wallet", "أسعار واضحة", "اختر ما يناسب ميزانيتك"], ["headphones", "دعم مباشر", "نساعدك عبر واتساب"]].map(([icon, title, text]) => <div key={title}><span className={styles.trustIcon}><Icon name={icon as "bolt" | "shield" | "wallet" | "headphones"} /></span><p><b>{title}</b><small>{text}</small></p></div>)}</div></div>
+    {featured.length > 0 && <section id="featured" className={`${styles.container} ${styles.section}`}><div className={styles.sectionHeading}><div><p className={styles.eyebrow}>THE SPOTLIGHT <span /> تحت الضوء</p><h2>اختيارات تستحق التجربة<span>.</span></h2><p className={styles.sectionDescription}>خدمات مميزة تفتح لك مساحة أكبر للإبداع والإنجاز.</p></div><a href="#shop" className={styles.outlineButton}>كل الاشتراكات <Icon name="arrow" /></a></div><div className={styles.featuredGrid}>{featured.map((product) => <ProductCard key={product.slug} product={product} featured />)}</div></section>}
+    <section id="categories" className={styles.categorySection}><div className={styles.container}><div className={styles.sectionHeading}><div><p className={styles.eyebrow}>FIND YOUR SPACE <span /> على مزاجك</p><h2>لكل شغف، مساحة<span>.</span></h2></div><p className={styles.sectionDescription}>شغل، إبداع أو وقت لنفسك.<br />ابدأ من عالمك المفضل.</p></div><div className={styles.categoryGrid}>{rootCategories.map((category) => <CategoryCard key={category.slug} category={category} />)}</div></div></section>
+    <ProductBrowser products={products} categories={categories} />
+    <section className={`${styles.container} ${styles.promo}`}><div><p className={styles.eyebrow}>LESS LIMITS. MORE POSSIBILITIES.</p><h2>فكرتك القادمة تستاهل<br />الأدوات الصح.</h2><p>جهّز مساحة عملك باشتراكات تناسب طموحك.</p><Link href="#shop" className={styles.whiteButton}>جهّز أدواتك <Icon name="arrow" /></Link></div><div className={styles.promoArt} aria-hidden="true"><span>✳</span><span>MAKE<br />IT<br /><i>HAPPEN.</i></span></div></section>
     <StoreExtras />
-    <section id="featured" className="mx-auto max-w-7xl px-5 pb-28 md:px-8"><div className="flex items-end justify-between border-b border-black/10 pb-6"><div><p className="text-xs font-bold text-[#103cff] pt-4">مختاراتنا</p><h2 className="mt-2 text-3xl font-black tracking-[-.04em] md:text-4xl">المنتجات المميزة.</h2></div><span className="text-xs text-black/40">الأكثر طلباً</span></div><div className="mt-8 grid gap-x-5 gap-y-10 sm:grid-cols-2">{featured.map((product) => <ProductCard key={product.slug} product={product} />)}</div></section>
-    <section id="categories" className="border-y border-black/[.06] bg-white"><div className="mx-auto max-w-7xl px-5 py-24 md:px-8"><p className="text-xs font-bold text-[#103cff]">تصفح حسب القسم</p><h2 className="mt-2 text-3xl font-black tracking-[-.04em] md:text-4xl">كل خدماتك بمكانها.</h2><div className="mt-9 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">{rootCategories.map((category) => <CategoryCard key={category.slug} category={category} />)}</div></div></section>
-    <ProductBrowser products={products} />
-    <footer className="mx-auto flex max-w-7xl flex-col gap-5 px-5 py-10 text-xs text-black/45 md:flex-row md:items-center md:justify-between md:px-8"><p>© 2026 Raeed Dev</p><p>الأسعار تُحدّث من لوحة التحكم</p><a href="https://wa.me/963969477454" className="font-bold text-[#103cff]">واتساب ←</a></footer>
+    <SiteFooter />
   </main>;
 }

@@ -2,6 +2,12 @@ This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-
 
 ## Getting Started
 
+Configure `DATABASE_URL` using `.env.example` and initialize the database with
+`database/schema.sql`. Products, categories, images, prices, and the exchange
+rate are loaded from the database in both development and production.
+There is no sample-catalog fallback. Manage catalog content and the exchange
+rate through the dashboard.
+
 First, run the development server:
 
 ```bash
@@ -18,7 +24,8 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 
 You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+The Arabic storefront uses Tajawal, RTL layouts, and scoped styles in
+`app/storefront.module.css`. Motion respects the visitor's reduced-motion setting.
 
 ## Learn More
 
