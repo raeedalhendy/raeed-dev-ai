@@ -4,7 +4,6 @@ import "./globals.css";
 export const metadata: Metadata = {
   title: "Raeed Dev | اشتراكات رقمية",
   description: "اشتراكاتك الرقمية بمكان واحد",
-  icons: { icon: "/fornav.png" },
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
