@@ -1,4 +1,5 @@
 import Image from "next/image";
+import { VisitTracker } from "../../_components/visit-tracker";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { catalogPath, findByUrl } from "../../_lib/catalog-urls";
@@ -33,6 +34,7 @@ export default async function ProductPage({ params }: PageProps<"/products/[slug
   const related = products.filter((item) => item.slug !== currentProduct.slug && Boolean(item.service) === Boolean(currentProduct.service)).sort((a, b) => Number(b.categorySlug === currentProduct.categorySlug) - Number(a.categorySlug === currentProduct.categorySlug)).slice(0, 4);
   const whatsapp = `https://wa.me/963969477454?text=${encodeURIComponent(`مرحباً، بدي أطلب ${product.name} بسعر $${product.price}`)}`;
   return <main className={styles.storefront}><SiteHeader />
+    <VisitTracker key={product.slug} kind="product" slug={product.slug} />
     <div className={styles.container}>
       <nav className={styles.breadcrumbs} aria-label="مسار الصفحة"><Link href="/">الرئيسية</Link><span>/</span>{category && <><Link href={catalogPath("category", category)}>{category.name}</Link><span>/</span></>}<span dir="auto">{product.name}</span></nav>
       <section className={styles.detailGrid}>

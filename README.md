@@ -2,6 +2,28 @@ This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-
 
 ## Getting Started
 
+## Visit analytics
+
+Open **Dashboard → إحصائيات الزيارات** for site sessions, page views, per-product
+views (including zero-view products), daily activity and campaign sources. Filter
+by today, 7 days, 30 days or all time; calendar boundaries use Asia/Damascus.
+Append `?utm_source=facebook&utm_campaign=launch` to an ad URL (use `&` if it
+already has a query). Attribution is taken from the session's first page.
+
+Tracking begins after deployment, with no historical backfill. A session is per
+browser tab and expires after 30 minutes without a tracked navigation; this is
+not a unique-person count. Refreshes count as page views. Admin sessions,
+known bots, prefetches, login/dashboard and missing pages are excluded. Blocked
+JavaScript/network requests may undercount; this is not fraud-resistant ad billing.
+No IP addresses or full referrer URLs are stored. Only random session/event IDs,
+page identity, source/campaign labels and timestamps are saved.
+
+No new dependencies or environment variables are required. The analytics table
+and indexes are created automatically on first tracking request or dashboard visit.
+If the database role cannot create tables, run `database/migration-006-analytics.sql`
+in the deployed database. Tracking failures do not block storefront browsing;
+dashboard failures show an error instead of misleading zero counts.
+
 Configure `DATABASE_URL` using `.env.example` and initialize the database with
 `database/schema.sql`. Products, categories, images, prices, and the exchange
 rate are loaded from the database in both development and production.

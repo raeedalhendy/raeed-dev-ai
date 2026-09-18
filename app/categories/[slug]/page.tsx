@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { VisitTracker } from "../../_components/visit-tracker";
 import { CategoryCard } from "../../_components/category-card";
 import { ProductCard } from "../../_components/product-card";
 import { SiteHeader } from "../../_components/site-header";
@@ -23,6 +24,7 @@ export default async function CategoryPage({ params }: PageProps<"/categories/[s
   const children = categories.filter(item => item.parentSlug === categoryKey);
   const items = products.filter(item => item.categorySlug === categoryKey);
   return <main className={styles.storefront}><SiteHeader /><div className={styles.container}>
+    <VisitTracker key={category.slug} kind="category" slug={category.slug} />
     <nav className={styles.breadcrumbs} aria-label="مسار الصفحة"><Link href="/">الرئيسية</Link><span>/</span><Link href="/#categories">كل الأقسام</Link><span>/</span><span>{category.name}</span></nav>
     <section className={styles.categoryIntro}><span className={styles.categoryIntroGlyph} aria-hidden="true">{category.glyph}</span><p className={styles.eyebrow}>FIND YOUR SPACE <span /> عالمك المفضل</p><h1>{category.name}</h1><p className={styles.sectionDescription}>{category.description}</p></section>
     <section className={styles.categoryProducts} aria-label={`تصفّح ${category.name}`}>

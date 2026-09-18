@@ -16,7 +16,7 @@ import { catalogPath } from "../_lib/catalog-urls";
 type Kind = "category" | "product";
 type Notice = { ok: boolean; message: string; id?: number };
 const Notices = createContext<(notice: Notice) => void>(() => {});
-const routes = [["/dashboard","نظرة عامة","◫"],["/dashboard/categories","الأقسام","▦"],["/dashboard/products","المنتجات","◇"],["/dashboard/settings","الإعدادات","⚙"]];
+const routes = [["/dashboard","نظرة عامة","◫"],["/dashboard/analytics","إحصائيات الزيارات","↗"],["/dashboard/categories","الأقسام","▦"],["/dashboard/products","المنتجات","◇"],["/dashboard/settings","الإعدادات","⚙"]];
 export function Shell({ children }: { children: React.ReactNode }) {
   const path=usePathname();
   const [notice,setNotice]=useState<Notice>();

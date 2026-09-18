@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { VisitTracker } from "./_components/visit-tracker";
 import { CategoryCard } from "./_components/category-card";
 import { ProductCard } from "./_components/product-card";
 import { SiteHeader } from "./_components/site-header";
@@ -16,6 +17,7 @@ export default async function Home() {
   const featured = products.filter((product) => product.featured);
   const rootCategories = categories.filter((category) => category.parentSlug === null);
   return <main className={styles.storefront}>
+    <VisitTracker kind="home" />
     <SiteHeader />
     <section className={styles.hero}>
       <div className={`${styles.container} ${styles.heroGrid}`}>
